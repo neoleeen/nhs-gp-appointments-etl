@@ -1,0 +1,9 @@
+pyspark==4.2.0
+pandas<3
+pyarrow
+duckdb
+openpyxl
+pytest
+jupyterlab
+streamlit
+plotly

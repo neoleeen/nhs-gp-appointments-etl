@@ -224,3 +224,9 @@ data/clean/*
 warehouse/*
 !*/.gitkeep
 !data/raw/manifest.json
+
+logs/
+raw/
+__pycache__/
+*.pyc
+.pytest_cache/

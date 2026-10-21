@@ -1,46 +1,69 @@
-import os
-import shutil
-import json
 import hashlib
-import pandas as pd
+import json
+import logging
+import shutil
+import time
 from datetime import datetime
+from pathlib import Path
 
-# Folder paths (in Google Drive, via Colab)
-source_folder = "/content/drive/MyDrive/LSA_Oct2026/raw"
-output_folder = "/content/drive/MyDrive/LSA_Oct2026/data/raw"
-os.makedirs(output_folder, exist_ok=True)
+import pandas as pd
 
-# Copy the two CSV files
-shutil.copy(source_folder + "/appointments_regional.csv", output_folder + "/appointments_regional.csv")
-shutil.copy(source_folder + "/national_categories.csv", output_folder + "/national_categories.csv")
+log = logging.getLogger(__name__)
 
-# Convert the Excel file to CSV
-table = pd.read_excel(source_folder + "/actual_duration.csv.xlsx")
-table.to_csv(output_folder + "/actual_duration.csv", index=False)
 
-# Build the manifest
-files = ["appointments_regional.csv", "national_categories.csv", "actual_duration.csv"]
-manifest = []
+def _row_count(path):
+    with open(path, "rb") as f:
+        return sum(1 for _ in f) - 1
 
-for name in files:
-    path = output_folder + "/" + name
 
-    count = 0
-    for line in open(path):
-        count = count + 1
-
+def _sha256(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
-        h.update(f.read())
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
-    entry = {
-        "file_name": name,
-        "size_bytes": os.path.getsize(path),
-        "sha256": h.hexdigest(),
-        "row_count": count - 1,
-        "extracted_at": datetime.now().isoformat(),
-    }
-    manifest.append(entry)
 
-with open(output_folder + "/manifest.json", "w") as f:
-    json.dump(manifest, f, indent=2)
+def extract(source_paths, raw_folder):
+    """Copy the source files into raw_folder, converting Excel to CSV, and write manifest.json.
+
+    source_paths: {"regional": path, "categories": path, "duration": path}
+    Returns {name: path of the CSV written to raw_folder}.
+    """
+    start = time.perf_counter()
+    raw_folder = Path(raw_folder)
+    raw_folder.mkdir(parents=True, exist_ok=True)
+
+    raw_paths = {}
+    manifest = []
+
+    for name, source in source_paths.items():
+        source = Path(source)
+
+        if source.suffix == ".xlsx":
+            out_path = raw_folder / source.stem
+            pd.read_excel(source).to_csv(out_path, index=False)
+            log.info("%s: converted Excel %s to CSV", name, source.name)
+        else:
+            out_path = raw_folder / source.name
+            shutil.copy(source, out_path)
+            log.info("%s: copied %s", name, source.name)
+
+        entry = {
+            "file_name": out_path.name,
+            "size_bytes": out_path.stat().st_size,
+            "sha256": _sha256(out_path),
+            "row_count": _row_count(out_path),
+            "extracted_at": datetime.now().isoformat(),
+        }
+        manifest.append(entry)
+        log.info("%s: %s rows, %s bytes", name, f"{entry['row_count']:,}", f"{entry['size_bytes']:,}")
+        raw_paths[name] = out_path
+
+    manifest_path = raw_folder / "manifest.json"
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    log.info("Manifest written to %s", manifest_path)
+
+    log.info("Extract finished in %.1f seconds", time.perf_counter() - start)
+    return raw_paths

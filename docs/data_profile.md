@@ -9,7 +9,8 @@ Profiling was done in Google Colab with pandas, before any cleaning.
 | File | Rows | Columns | Grain |
 |---|---|---|---|
 | appointments_regional.csv | 596,821 | 7 | one ICB, month, status, staff type, mode and booking-wait band |
-| national_categories.csv | 817,394 | 8 | one sub-ICB location, day, service setting and national category |
+| national_categorie
+s.csv | 817,394 | 8 | one sub-ICB location, day, service setting and national category |
 | actual_duration.csv (converted from Excel) | 137,793 | 8 | one sub-ICB location, day and consultation-length band |
 
 All three row counts match the guide and my `manifest.json`.
@@ -110,3 +111,9 @@ All three row counts match the guide and my `manifest.json`.
   - Alphabetical order puts the wait bands in the wrong order (for example `1 Day` comes before `Same Day`).
 - **Problem:** the same label spelled two ways counts as two different labels, and charts show the wait bands in the wrong order.
 - **Fix:** turn double spaces into single spaces, rename the staff label to match the metadata, and give the wait bands an explicit sort order.
+
+## Correction (Week 2)
+
+**Trap 2 (BOM):** testing in Week 2 showed that Spark 4.2.0 removes the byte-order mark from the
+header by itself, so the first column loads as `appointment_date`. Older versions and other tools
+may not, so the transform still strips `\ufeff` from the column names as a safeguard.

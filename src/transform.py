@@ -39,6 +39,8 @@ DURATION_SCHEMA = StructType([
     StructField("count_of_appointments", LongType()),
 ])
 
+def read_raw(spark, path, schema):
+    return spark.read.csv(str(path), header=True, schema=schema, mode="FAILFAST"
 
 def _rows_and_total(df):
     row = df.agg(
@@ -98,7 +100,7 @@ def transform(spark, raw_paths, clean_folder):
         start = time.perf_counter()
         log.info("%s: started", name)
 
-        raw = spark.read.csv(str(raw_paths[name]), header=True, schema=schema)
+        raw = read_raw(spark, raw_paths[name], schema)
         rows_in, total_in = _rows_and_total(raw)
         log.info("%s: read %s rows, total %s", name, f"{rows_in:,}", f"{total_in:,}")
 

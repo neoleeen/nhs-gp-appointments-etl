@@ -7,3 +7,4 @@ pytest
 jupyterlab
 streamlit
 plotly
+duckdb==1.5.6

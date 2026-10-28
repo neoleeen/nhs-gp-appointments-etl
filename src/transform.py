@@ -42,6 +42,12 @@ DURATION_SCHEMA = StructType([
 def read_raw(spark, path, schema):
     return spark.read.csv(str(path), header=True, schema=schema, mode="FAILFAST"
 
+def _tidy_text(df):
+    for field in df.schema.fields:
+        if isinstance(field.dataType, StringType):
+            df = df.withColumn(field.name, F.trim(F.regexp_replace(F.col(field.name), r"\s+", " ")))
+    return df
+
 def _rows_and_total(df):
     row = df.agg(
         F.count(F.lit(1)).alias("rows"),
@@ -49,12 +55,10 @@ def _rows_and_total(df):
     ).first()
     return row["rows"], row["total"]
 
-
 def _clean_regional(df):
+    df = _tidy_text(df)
     df = (
         df
-        .withColumn("time_between_book_and_appointment",
-                    F.trim(F.regexp_replace("time_between_book_and_appointment", r"\s+", " ")))
         .withColumn("hcp_type",
                     F.regexp_replace("hcp_type", "(?i)^other practice staff$", "Other Practice Staff"))
         .withColumn("month_start",
@@ -66,6 +70,7 @@ def _clean_regional(df):
 
 def _clean_categories(df):
     df = df.toDF(*[c.replace("\ufeff", "") for c in df.columns])
+    df = _tidy_text(df)
     return (
         df
         .withColumn("appointment_day", F.to_date("appointment_date", "dd/MM/yyyy"))
@@ -75,6 +80,7 @@ def _clean_categories(df):
 
 
 def _clean_duration(df):
+    df = _tidy_text(df)
     return (
         df
         .withColumn("appointment_day", F.to_date("appointment_date", "yyyy-MM-dd"))
@@ -116,6 +122,12 @@ def transform(spark, raw_paths, clean_folder):
 
         if total_out != total_in:
             raise ValueError(f"{name}: total changed from {total_in:,} to {total_out:,}")
+
+        if name == "regional":
+            if rows_out > rows_in:
+                raise ValueError(f"{name}: rows grew from {rows_in:,} to {rows_out:,}")
+        elif rows_out != rows_in:
+            raise ValueError(f"{name}: rows changed from {rows_in:,} to {rows_out:,}")
 
         log.info("%s: finished in %.1f seconds", name, time.perf_counter() - start)
         outputs[name] = out_path

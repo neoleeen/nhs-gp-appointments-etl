@@ -36,3 +36,21 @@ The data profile in `docs/data_profile.md` records each file's columns, grain an
 
 13 pytest tests guard every cleaning rule. Decisions are in `docs/decision_log.md`
 and the warehouse design is in `docs/star_schema.md`.
+
+## Week 3: Load and checks (DuckDB)
+
+`python run_pipeline.py` now runs four stages in order: extract, transform, load and checks.
+The warehouse is built in `warehouse/warehouse.duckdb` (not in Git; the pipeline rebuilds it).
+
+| Exit code | Meaning |
+|---|---|
+| 0 | Loaded and all checks passed |
+| 2 | Stopped by a failed quality check |
+| 1 | Crashed |
+
+The star schema has three fact tables (monthly, by category, by duration) and six dimensions
+(date, geography, ICB, booking wait, duration band, national category). The load replaces each
+month inside a transaction, so reruns never double the data: three runs in a row gave identical totals.
+
+Nine quality checks run after every load and are written to `docs/quality_report.json`.
+All nine pass. 24 pytest tests cover the clean data and the warehouse.

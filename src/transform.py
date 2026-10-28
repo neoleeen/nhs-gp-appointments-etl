@@ -40,7 +40,7 @@ DURATION_SCHEMA = StructType([
 ])
 
 def read_raw(spark, path, schema):
-    return spark.read.csv(str(path), header=True, schema=schema, mode="FAILFAST"
+    return spark.read.csv(str(path), header=True, schema=schema, mode="FAILFAST")
 
 def _tidy_text(df):
     for field in df.schema.fields:

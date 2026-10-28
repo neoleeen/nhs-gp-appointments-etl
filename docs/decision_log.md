@@ -1,7 +1,7 @@
 # Decision log
 
 Week 2 transform (`src/transform.py`). One line per decision: what changed, why, and how many rows it affected.
-Row counts and totals before and after are checked automatically by `tests/test_clean.py` (13 tests).
+Row counts and totals before and after are checked automatically by `tests/test_clean.py` (16 tests).
 
 ## Cleaning decisions
 
@@ -12,7 +12,7 @@ Row counts and totals before and after are checked automatically by `tests/test_
 | 3 | Strip the byte-order mark (`\ufeff`) from the categories column names | Trap 2. Tested: Spark 4.2.0 already removes it from the header, so nothing changed, but it is kept as a safeguard for other tools and versions | 0 columns changed |
 | 4 | Parsed categories `appointment_date` day-first (`dd/MM/yyyy`) into a new column `appointment_day` | Trap 3: `02/08/2021` is 2 August, not 8 February | 817,394 rows parsed; 0 nulls; 0 rows where the month disagrees with `appointment_month` |
 | 5 | Summed regional rows that share every descriptive column, instead of dropping them | Trap 4: the sub-ICB columns were removed from this file, so look-alike rows are real appointments from different sub-ICBs | 21,604 exact duplicates found; 596,821 → 295,692 rows (301,129 combined); total unchanged at 742,804,525 |
-| 6 | Collapsed repeated spaces in wait-band labels (e.g. `15 to  21 Days` → `15 to 21 Days`) | Trap 5: the same band must have one label | 225,119 raw rows across 3 labels |
+| 6 | Collapsed repeated spaces in wait-band labels (e.g. `15  to 21 Days` → `15 to 21 Days`, with two spaces after `15`) | Trap 5: the same band must have one label | 225,119 raw rows across 3 labels |
 | 7 | Changed `Other Practice staff` to `Other Practice Staff` | Trap 5: match the spelling in the metadata | 241,557 raw rows |
 | 8 | Added `month_start` (a real date) beside the regional `appointment_month` | Add, don't overwrite; gives a date to join to the date dimension | 295,692 rows; 0 nulls |
 | 9 | Extracted `sub_icb_code` from the end of `sub_icb_location_name` (e.g. `... ICB - 00P` → `00P`) | The categories file has no code column, and the code is needed to join to `dim_geography` | 817,394 rows; 0 empty; 106 distinct codes |

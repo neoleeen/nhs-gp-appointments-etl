@@ -103,7 +103,7 @@ flowchart LR
     C -->|"load.py, Week 3"| D["warehouse/<br/>DuckDB star schema"]
     D -->|"checks.py, Week 3"| E["quality report"]
     D -->|"Week 4"| F["Streamlit dashboard<br/>12 KPIs"]
-    T["pytest, 13 tests"] -.->|"guards"| C
+    T["pytest, 16 tests"] -.->|"guards"| C
 ```
 
 `run_pipeline.py` runs the stages in order and stops at the first failure. Each layer reads only the

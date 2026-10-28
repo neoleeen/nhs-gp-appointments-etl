@@ -8,10 +8,9 @@ Profiling was done in Google Colab with pandas, before any cleaning.
 
 | File | Rows | Columns | Grain |
 |---|---|---|---|
-| appointments_regional.csv | 596,821 | 7 | one ICB, month, status, staff type, mode and booking-wait band |
-| national_categorie
-s.csv | 817,394 | 8 | one sub-ICB location, day, service setting and national category |
-| actual_duration.csv (converted from Excel) | 137,793 | 8 | one sub-ICB location, day and consultation-length band |
+| `appointments_regional.csv` | 596,821 | 7 | one ICB, month, status, staff type, mode and booking-wait band |
+| `national_categories.csv` | 817,394 | 8 | one sub-ICB location, day, service setting and national category |
+| `actual_duration.csv` (converted from Excel) | 137,793 | 8 | one sub-ICB location, day and consultation-length band |
 
 All three row counts match the guide and my `manifest.json`.
 

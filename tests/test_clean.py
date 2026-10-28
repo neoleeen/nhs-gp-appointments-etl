@@ -1,5 +1,6 @@
 from pyspark.sql import functions as F
-
+import pytest
+from src.transform import read_raw, REGIONAL_SCHEMA, _tidy_text
 
 def total(df):
     return df.agg(F.sum("count_of_appointments")).first()[0]
@@ -89,3 +90,26 @@ def test_counts_positive(regional, categories, duration):
     for df in (regional, categories, duration):
         assert df.filter(F.col("count_of_appointments").isNull()).count() == 0
         assert df.agg(F.min("count_of_appointments")).first()[0] > 0
+
+def test_bad_count_stops_the_read(spark, tmp_path):
+    bad = tmp_path / "bad.csv"
+    bad.write_text(
+        "icb_ons_code,appointment_month,appointment_status,hcp_type,appointment_mode,"
+        "time_between_book_and_appointment,count_of_appointments\n"
+        "E54000001,2020-01,Attended,GP,Telephone,Same Day,abc\n"
+    )
+    with pytest.raises(Exception):
+        read_raw(spark, bad, REGIONAL_SCHEMA).collect()
+
+
+def test_no_untidy_text_anywhere(regional, categories, duration):
+    for df in (regional, categories, duration):
+        for c, dtype in df.dtypes:
+            if dtype == "string":
+                bad = df.filter(F.col(c).contains("  ") | (F.col(c) != F.trim(F.col(c)))).count()
+                assert bad == 0, c
+
+
+def test_tidy_text_fixes_spaces(spark):
+    df = spark.createDataFrame([(" a  b ",)], ["label"])
+    assert _tidy_text(df).first()["label"] == "a b"

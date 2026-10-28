@@ -116,3 +116,15 @@ All three row counts match the guide and my `manifest.json`.
 **Trap 2 (BOM):** testing in Week 2 showed that Spark 4.2.0 removes the byte-order mark from the
 header by itself, so the first column loads as `appointment_date`. Older versions and other tools
 may not, so the transform still strips `\ufeff` from the column names as a safeguard.
+
+
+## Total appointments per file
+
+| File | Rows | Total appointments |
+|---|---:|---:|
+| appointments_regional.csv | 596,821 | 742,804,525 |
+| national_categories.csv | 817,394 | 296,046,770 |
+| actual_duration.csv.xlsx | 137,793 | 167,980,692 |
+
+These totals are the same after every stage (transform, Parquet, warehouse), which is the
+evidence that no appointments were lost.

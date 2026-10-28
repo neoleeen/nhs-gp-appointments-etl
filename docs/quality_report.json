@@ -1,0 +1,53 @@
+{
+  "run_at": "2026-10-28T16:22:09",
+  "warehouse": "/content/drive/MyDrive/LSA_Oct2026/warehouse/warehouse.duckdb",
+  "passed": 9,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "1. fact_appointments_monthly total matches transform",
+      "status": "PASS",
+      "detail": "warehouse 742,804,525 vs expected 742,804,525"
+    },
+    {
+      "check": "2. fact_appointments_by_category total matches transform",
+      "status": "PASS",
+      "detail": "warehouse 296,046,770 vs expected 296,046,770"
+    },
+    {
+      "check": "3. fact_appointments_by_duration total matches transform",
+      "status": "PASS",
+      "detail": "warehouse 167,980,692 vs expected 167,980,692"
+    },
+    {
+      "check": "4. Regional and category monthly totals reconcile, Aug 2021 - Jun 2022",
+      "status": "PASS",
+      "detail": "0 of 11 months differ"
+    },
+    {
+      "check": "5. Every sub-ICB code in the category and duration facts exists in dim_geography",
+      "status": "PASS",
+      "detail": "0 orphan rows"
+    },
+    {
+      "check": "6. Every booking-wait label is a known band",
+      "status": "PASS",
+      "detail": "0 unknown labels []"
+    },
+    {
+      "check": "7. Every duration label is a known band",
+      "status": "PASS",
+      "detail": "0 unknown labels []"
+    },
+    {
+      "check": "8. No null dates or counts in the category fact",
+      "status": "PASS",
+      "detail": "0 nulls"
+    },
+    {
+      "check": "9. Duration covers at least 90% of category appointments each month",
+      "status": "PASS",
+      "detail": "lowest 90.9% in 2021-12"
+    }
+  ]
+}
